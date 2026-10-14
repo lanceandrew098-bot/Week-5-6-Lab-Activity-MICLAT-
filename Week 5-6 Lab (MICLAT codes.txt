@@ -1,0 +1,526 @@
+
+using System;
+using System.Windows.Forms;
+
+namespace BigONotationApp
+{
+    internal static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            ApplicationConfiguration.Initialize();
+            Application.Run(new Form1());
+        }
+    }
+}
+
+
+
+
+
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BigONotationApp
+{
+    public partial class Form1 : Form
+    {
+        private ComboBox cmbBigO = new ComboBox();
+        private NumericUpDown numInput = new NumericUpDown();
+        private FlowLayoutPanel pnlButtons = new FlowLayoutPanel();
+        private TextBox txtOutput = new TextBox();
+        private Label lblDescription = new Label();
+
+        public Form1()
+        {
+            InitializeComponent();
+            CreateInterface();
+            LoadCategory();
+        }
+
+        private void CreateInterface()
+        {
+            Text = "Big O Notation Lab";
+            Size = new Size(950, 720);
+            StartPosition = FormStartPosition.CenterScreen;
+            BackColor = Color.FromArgb(240, 244, 248);
+            Font = new Font("Segoe UI", 10);
+
+            Label lblTitle = new Label
+            {
+                Text = "BIG O NOTATION LAB",
+                Font = new Font("Segoe UI", 23, FontStyle.Bold),
+                ForeColor = Color.Navy,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            lblTitle.SetBounds(20, 10, 890, 50);
+            Controls.Add(lblTitle);
+
+            Label lblSubtitle = new Label
+            {
+                Text = "5 Types of Big O - 15 Algorithm Examples",
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            lblSubtitle.SetBounds(20, 60, 890, 30);
+            Controls.Add(lblSubtitle);
+
+            Label lblCategory = new Label { Text = "Select Big O Type:" };
+            lblCategory.SetBounds(30, 110, 200, 25);
+            Controls.Add(lblCategory);
+
+            cmbBigO.Items.AddRange(new object[]
+            {
+                "O(1) - Constant Time",
+                "O(log n) - Logarithmic Time",
+                "O(n) - Linear Time",
+                "O(n log n) - Linearithmic Time",
+                "O(n^2) - Quadratic Time"
+            });
+
+            cmbBigO.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbBigO.SetBounds(30, 140, 350, 35);
+            cmbBigO.SelectedIndexChanged += CmbBigO_SelectedIndexChanged;
+            Controls.Add(cmbBigO);
+
+            Label lblInput = new Label { Text = "Input size (n):" };
+            lblInput.SetBounds(430, 110, 200, 25);
+            Controls.Add(lblInput);
+
+            numInput.Minimum = 1;
+            numInput.Maximum = 1000;
+            numInput.Value = 10;
+            numInput.SetBounds(430, 140, 150, 30);
+            Controls.Add(numInput);
+
+            lblDescription.SetBounds(30, 190, 850, 40);
+            lblDescription.ForeColor = Color.DarkSlateGray;
+            Controls.Add(lblDescription);
+
+            Label lblExamples = new Label
+            {
+                Text = "Click an example button to run:",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold)
+            };
+            lblExamples.SetBounds(30, 240, 450, 30);
+            Controls.Add(lblExamples);
+
+            pnlButtons.SetBounds(30, 275, 850, 115);
+            pnlButtons.FlowDirection = FlowDirection.LeftToRight;
+            pnlButtons.WrapContents = true;
+            Controls.Add(pnlButtons);
+
+            Label lblOutput = new Label
+            {
+                Text = "OUTPUT",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold)
+            };
+            lblOutput.SetBounds(30, 405, 300, 30);
+            Controls.Add(lblOutput);
+
+            txtOutput.Multiline = true;
+            txtOutput.ReadOnly = true;
+            txtOutput.ScrollBars = ScrollBars.Vertical;
+            txtOutput.Font = new Font("Consolas", 11);
+            txtOutput.BackColor = Color.White;
+            txtOutput.SetBounds(30, 440, 850, 160);
+            Controls.Add(txtOutput);
+
+            Button btnClear = new Button { Text = "CLEAR OUTPUT" };
+            btnClear.SetBounds(30, 615, 160, 40);
+            btnClear.Click += BtnClear_Click;
+            Controls.Add(btnClear);
+
+            Button btnExit = new Button { Text = "EXIT" };
+            btnExit.SetBounds(210, 615, 120, 40);
+            btnExit.Click += BtnExit_Click;
+            Controls.Add(btnExit);
+
+            cmbBigO.SelectedIndex = 0;
+        }
+
+        private void CmbBigO_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadCategory();
+        }
+
+        private void LoadCategory()
+        {
+            if (cmbBigO.SelectedIndex < 0)
+                return;
+
+            pnlButtons.Controls.Clear();
+
+            string[] explanations =
+            {
+                "O(1): Constant time. A fixed number of steps.",
+                "O(log n): Logarithmic time. The problem is repeatedly divided.",
+                "O(n): Linear time. Each input element is processed.",
+                "O(n log n): Efficient sorting algorithms.",
+                "O(n^2): Quadratic time. Work grows with the square of n."
+            };
+
+            string[][] names =
+            {
+                new[] { "1. Array Access", "2. First Element", "3. Addition" },
+                new[] { "1. Binary Search", "2. Repeated Halving", "3. First Match Search" },
+                new[] { "1. Sum Array", "2. Linear Search", "3. Count Evens" },
+                new[] { "1. Merge Sort", "2. Heap Sort", "3. Array Sort" },
+                new[] { "1. Bubble Sort", "2. Compare Pairs", "3. Multiplication Table" }
+            };
+
+            int category = cmbBigO.SelectedIndex;
+            lblDescription.Text = explanations[category];
+
+            for (int i = 0; i < 3; i++)
+            {
+                int example = i;
+
+                Button btn = new Button
+                {
+                    Text = names[category][example],
+                    Size = new Size(265, 45),
+                    Margin = new Padding(5),
+                    BackColor = Color.FromArgb(35, 90, 150),
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+
+                btn.Click += (s, e) => RunExample(category, example);
+                pnlButtons.Controls.Add(btn);
+            }
+
+            txtOutput.Text = "Choose one of the three examples above.";
+        }
+
+        private void RunExample(int category, int example)
+        {
+            int n = (int)numInput.Value;
+            string result = "";
+
+            switch (category)
+            {
+                case 0: result = RunConstant(example, n); break;
+                case 1: result = RunLogarithmic(example, n); break;
+                case 2: result = RunLinear(example, n); break;
+                case 3: result = RunLinearithmic(example, n); break;
+                case 4: result = RunQuadratic(example, n); break;
+            }
+
+            txtOutput.Text =
+                "BIG O NOTATION LAB\r\n" +
+                "============================\r\n" +
+                "Category: " + cmbBigO.Text + "\r\n" +
+                "Input size: " + n + "\r\n\r\n" +
+                result;
+        }
+
+        // O(1) - CONSTANT TIME
+        private string RunConstant(int example, int n)
+        {
+            int[] data = Enumerable.Range(1, n).ToArray();
+
+            switch (example)
+            {
+                case 0:
+                    return "Example: Array Access\r\nValue: " +
+                           data[n / 2] + "\r\nComplexity: O(1)";
+
+                case 1:
+                    return "Example: First Element\r\nValue: " +
+                           data[0] + "\r\nComplexity: O(1)";
+
+                default:
+                    return "Example: Addition\r\n10 + 20 = " +
+                           (10 + 20) + "\r\nComplexity: O(1)";
+            }
+        }
+
+        // O(log n) - LOGARITHMIC TIME
+        private string RunLogarithmic(int example, int n)
+        {
+            if (example == 0)
+            {
+                int[] data = Enumerable.Range(1, n).ToArray();
+                int low = 0, high = n - 1, steps = 0;
+                int target = n;
+
+                while (low <= high)
+                {
+                    steps++;
+                    int mid = low + (high - low) / 2;
+
+                    if (data[mid] == target)
+                        break;
+
+                    if (data[mid] < target)
+                        low = mid + 1;
+                    else
+                        high = mid - 1;
+                }
+
+                return "Example: Binary Search\r\nTarget: " + target +
+                       "\r\nSteps: " + steps + "\r\nComplexity: O(log n)";
+            }
+
+            if (example == 1)
+            {
+                int value = n, steps = 0;
+
+                while (value > 1)
+                {
+                    value /= 2;
+                    steps++;
+                }
+
+                return "Example: Repeated Halving\r\nSteps: " + steps +
+                       "\r\nComplexity: O(log n)";
+            }
+
+            {
+                int[] data = Enumerable.Range(1, n).ToArray();
+                int low = 0, high = n - 1, steps = 0, answer = -1;
+
+                while (low <= high)
+                {
+                    steps++;
+                    int mid = low + (high - low) / 2;
+
+                    if (data[mid] >= 1)
+                    {
+                        answer = mid;
+                        high = mid - 1;
+                    }
+                    else
+                    {
+                        low = mid + 1;
+                    }
+                }
+
+                return "Example: First Match Binary Search\r\nFound: " +
+                       data[answer] + "\r\nSteps: " + steps +
+                       "\r\nComplexity: O(log n)";
+            }
+        }
+
+        // O(n) - LINEAR TIME
+        private string RunLinear(int example, int n)
+        {
+            int[] data = Enumerable.Range(1, n).ToArray();
+
+            if (example == 0)
+            {
+                long sum = 0;
+                foreach (int value in data)
+                    sum += value;
+
+                return "Example: Sum Array\r\nSum: " + sum +
+                       "\r\nElements processed: " + n +
+                       "\r\nComplexity: O(n)";
+            }
+
+            if (example == 1)
+            {
+                int target = n, steps = 0;
+
+                foreach (int value in data)
+                {
+                    steps++;
+                    if (value == target)
+                        break;
+                }
+
+                return "Example: Linear Search\r\nTarget: " + target +
+                       "\r\nElements checked: " + steps +
+                       "\r\nComplexity: O(n)";
+            }
+
+            int count = 0;
+
+            for (int i = 1; i <= n; i++)
+                if (i % 2 == 0)
+                    count++;
+
+            return "Example: Count Even Numbers\r\nEven numbers: " +
+                   count + "\r\nElements processed: " + n +
+                   "\r\nComplexity: O(n)";
+        }
+
+        // O(n log n) - LINEARITHMIC TIME
+        private string RunLinearithmic(int example, int n)
+        {
+            int[] data = Enumerable.Range(1, n).Reverse().ToArray();
+
+            if (example == 0)
+            {
+                long comparisons = 0;
+                MergeSort(data, 0, data.Length - 1, ref comparisons);
+
+                return "Example: Merge Sort\r\nElements sorted: " + n +
+                       "\r\nComparisons: " + comparisons +
+                       "\r\nComplexity: O(n log n)";
+            }
+
+            if (example == 1)
+            {
+                HeapSort(data);
+
+                return "Example: Heap Sort\r\nElements sorted: " + n +
+                       "\r\nFirst sorted value: " + data[0] +
+                       "\r\nComplexity: O(n log n)";
+            }
+
+            Array.Sort(data);
+
+            return "Example: Array.Sort\r\nElements sorted: " + n +
+                   "\r\nFirst sorted value: " + data[0] +
+                   "\r\nWorst-case complexity: O(n log n)";
+        }
+
+        // O(n^2) - QUADRATIC TIME
+        private string RunQuadratic(int example, int n)
+        {
+            if (example == 0)
+            {
+                int[] data = Enumerable.Range(1, n).Reverse().ToArray();
+                long comparisons = 0;
+
+                for (int i = 0; i < n - 1; i++)
+                {
+                    for (int j = 0; j < n - i - 1; j++)
+                    {
+                        comparisons++;
+
+                        if (data[j] > data[j + 1])
+                        {
+                            int temp = data[j];
+                            data[j] = data[j + 1];
+                            data[j + 1] = temp;
+                        }
+                    }
+                }
+
+                return "Example: Bubble Sort\r\nElements sorted: " + n +
+                       "\r\nComparisons: " + comparisons +
+                       "\r\nComplexity: O(n^2) worst case";
+            }
+
+            if (example == 1)
+            {
+                long pairs = 0;
+
+                for (int i = 0; i < n; i++)
+                    for (int j = i + 1; j < n; j++)
+                        pairs++;
+
+                return "Example: Compare Every Pair\r\nPairs compared: " +
+                       pairs + "\r\nComplexity: O(n^2)";
+            }
+
+            long operations = 0;
+
+            for (int i = 1; i <= n; i++)
+                for (int j = 1; j <= n; j++)
+                    operations++;
+
+            return "Example: Multiplication Table\r\nTable size: " +
+                   n + " x " + n + "\r\nMultiplications: " +
+                   operations + "\r\nComplexity: O(n^2)";
+        }
+
+        // MERGE SORT
+        private void MergeSort(int[] a, int left, int right,
+                               ref long comparisons)
+        {
+            if (left >= right)
+                return;
+
+            int mid = left + (right - left) / 2;
+
+            MergeSort(a, left, mid, ref comparisons);
+            MergeSort(a, mid + 1, right, ref comparisons);
+
+            int[] temp = new int[right - left + 1];
+            int i = left, j = mid + 1, k = 0;
+
+            while (i <= mid && j <= right)
+            {
+                comparisons++;
+
+                if (a[i] <= a[j])
+                    temp[k++] = a[i++];
+                else
+                    temp[k++] = a[j++];
+            }
+
+            while (i <= mid)
+                temp[k++] = a[i++];
+
+            while (j <= right)
+                temp[k++] = a[j++];
+
+            Array.Copy(temp, 0, a, left, temp.Length);
+        }
+
+        // HEAP SORT
+        private void HeapSort(int[] a)
+        {
+            int n = a.Length;
+
+            for (int i = n / 2 - 1; i >= 0; i--)
+                Heapify(a, n, i);
+
+            for (int i = n - 1; i > 0; i--)
+            {
+                int temp = a[0];
+                a[0] = a[i];
+                a[i] = temp;
+
+                Heapify(a, i, 0);
+            }
+        }
+
+        private void Heapify(int[] a, int n, int root)
+        {
+            int largest = root;
+            int left = 2 * root + 1;
+            int right = 2 * root + 2;
+
+            if (left < n && a[left] > a[largest])
+                largest = left;
+
+            if (right < n && a[right] > a[largest])
+                largest = right;
+
+            if (largest != root)
+            {
+                int temp = a[root];
+                a[root] = a[largest];
+                a[largest] = temp;
+
+                Heapify(a, n, largest);
+            }
+        }
+
+        // CLEAR OUTPUT BUTTON
+        private void BtnClear_Click(object sender, EventArgs e)
+        {
+            txtOutput.Clear();
+        }
+
+        // EXIT BUTTON
+        private void BtnExit_Click(object sender, EventArgs e)
+        {
+            DialogResult answer = MessageBox.Show(
+                "Are you sure you want to exit?",
+                "Exit Big O Notation Lab",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (answer == DialogResult.Yes)
+                Close();
+        }
+    }
+}
